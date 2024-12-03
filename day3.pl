@@ -1,25 +1,28 @@
 :- use_module(library(dcg/basics)).
 
+muls(Result) --> not_mul, mul(N1), not_mul, muls(N2), {Result is N1 + N2}.
+muls(0)      --> [].
+
 mul(N) -->
   "mul(", number(N1), ",", number(N2), ")", {N is N1 * N2}.
 
-muls(Result) -->
-  ignores, mul(N1), ignores, muls(N2), {Result is N1 + N2}.
-muls(0) --> [].
-
-ignores --> [].
-ignores --> [_], ignores.
+not_mul -->
+  string(Codes),
+  {\+ phrase(mul(_), Codes) }.
 
 solve_part1(N) :-
   once(phrase_from_file(muls(N), "./day3_input.txt")).
 
-parser([Op|Rest]) --> ignores, token(Op), ignores, parser(Rest).
+parser([Token|Rest]) --> not_token, token(Token), not_token, parser(Rest).
 parser([]) --> [].
 
-token(mul(N)) -->
-  mul(N).
-token(do) --> "do()".
-token(dont) --> "don't()".
+token(mul(N)) --> mul(N).
+token(do)     --> "do()".
+token(dont)   --> "don't()".
+
+not_token -->
+  string(Codes),
+  { \+ phrase(token(_), Codes) }.
 
 solve_part2(N) :-
   once(phrase_from_file(parser(Tokens), "./day3_input.txt")),
