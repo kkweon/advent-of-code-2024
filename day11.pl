@@ -1,3 +1,6 @@
+:- use_module(library(apply)).
+:- use_module(library(apply_macros)).
+:- use_module(library(yall)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/high_order)).
 
@@ -37,7 +40,12 @@ solve_part2(Result) :-
   solve(75, Row, Result).
 
 solve(N, Row, Result) :-
-  foldl({N}/[In, Acc, Out]>>(next_number_n(N, In, O), Out is Acc + O), Row, 0, Result).
+  foldl(next_number_n_runner(N), Row, 0, Result).
+
+:- table next_number_n_runner/4.
+next_number_n_runner(N, In, Acc, Out) :-
+  next_number_n(N, In, O),
+  Out is Acc + O.
 
 :- table next_number_n/3.
 next_number_n(0, _, 1) :- !.
@@ -45,8 +53,7 @@ next_number_n(N, Number, Result) :-
   N > 0,
   N1 is N - 1,
   next_number(Number, NextNumbers),
-  foldl({N1}/[In, Acc, Out]>>(next_number_n(N1, In, O), Out is Acc + O),
-        NextNumbers, 0, Result), !.
+  foldl(next_number_n_runner(N1), NextNumbers, 0, Result), !.
 
 blink_(Numbers, NextNumbers) :-
   foldl(next_number_runner, Numbers, [], Result),
